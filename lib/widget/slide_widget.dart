@@ -2,95 +2,90 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-typedef SlideToSubmitCallback =  Function(Function onFinish, Function onError);
+typedef SlideToSubmitCallback = void Function(Function onFinish, Function onError);
 
-class SlideWidget extends StatefulWidget {
+class SlideToSubmitWidget extends StatefulWidget {
   final IconData icon;
   final String text;
   final Color color;
   final SlideToSubmitCallback onSubmit;
 
-  const SlideWidget({
+  const SlideToSubmitWidget({
     Key key,
-    @required this.icon, 
-    @required this.text, 
-    @required this.color, 
-    @required this.onSubmit
-  }) : super(key: key);
-
+    @required this.icon,
+    @required this.text,
+    @required this.color,
+    @required this.onSubmit}) : super(key: key);
 
   @override
-  _SlideWidgetState createState() => _SlideWidgetState();
+  _SlideToSubmitWidgetState createState() => _SlideToSubmitWidgetState();
 }
 
-class _SlideWidgetState extends State<SlideWidget> with SingleTickerProviderStateMixin{
+class _SlideToSubmitWidgetState extends State<SlideToSubmitWidget>
+    with SingleTickerProviderStateMixin {
   double slidePercent = 0.0;
   double widgetWidth = 0;
   bool dragging = false;
   bool loading = false;
   bool success = false;
-  double dragStarAt = 0;
+  double dragStartAt = 0;
 
   AnimationController _controller;
 
   @override
-   initState() { 
+  void initState() {
     super.initState();
+
     _controller = AnimationController(
-      vsync: this, duration: Duration(milliseconds: 250)
+      vsync: this,
+      duration: Duration(milliseconds: 500),
     );
 
     _controller.addListener(() {
       setState(() {
-       slidePercent = _controller.value;       
+        slidePercent = _controller.value;
       });
     });
-
     _controller.addStatusListener((status) {
-      if (status == AnimationStatus.dismissed){
+      if (status == AnimationStatus.dismissed) {
         setState(() {
-         dragging = false;
-         widgetWidth = 0;
-         dragStarAt = 0;
-         slidePercent = 0;         
+          dragging = false;
+          widgetWidth = 0;
+          dragStartAt = 0;
+          slidePercent = 0;
         });
       }
     });
   }
-  
-  @override
-    void dispose() {
-      _controller.dispose();
-      super.dispose();
-    }
 
-   _dragStart(DragStartDetails details) {
+  _dragStart(DragStartDetails details) {
     setState(() {
       dragging = true;
-      dragStarAt = details.globalPosition.dx;
-      widgetWidth = context.size.width;     
+      dragStartAt = details.globalPosition.dx;
+      widgetWidth = context.size.width;
     });
   }
 
-   _dragUpdate(DragUpdateDetails details) {
+  _dragUpdate(DragUpdateDetails details) {
     if (dragging) {
       var maxDragDistance = widgetWidth - 80.0;
 
-      var distance = min( maxDragDistance, details.globalPosition.dx - dragStarAt);
+      var distance = min(
+          maxDragDistance, details.globalPosition.dx - dragStartAt);
 
-      if(distance > 0){
+      if (distance > 0) {
         setState(() {
           slidePercent = distance / widgetWidth;
         });
       }
-
     }
   }
 
-   _dragEnd(DragEndDetails details) {
+  _dragEnd(DragEndDetails details) {
     setState(() {
-      if(widgetWidth * (1.0 - slidePercent ) == 80) {
-        widget.onSubmit( _onFinish, _onError);
+      if (widgetWidth * (1.0 - slidePercent) == 80) {
+        widget.onSubmit(_onFinish, _onError);
+
         loading = true;
         _controller.reverse(from: slidePercent);
       } else {
@@ -99,13 +94,13 @@ class _SlideWidgetState extends State<SlideWidget> with SingleTickerProviderStat
     });
   }
 
-   _onFinish(){
+  _onFinish() {
     setState(() {
       success = true;
     });
   }
 
-   _onError(){
+  _onError() {
     setState(() {
       dragging = false;
       loading = false;
@@ -113,6 +108,13 @@ class _SlideWidgetState extends State<SlideWidget> with SingleTickerProviderStat
       widgetWidth = 0;
     });
   }
+
+
+  @override
+    void dispose() {
+      _controller.dispose();
+      super.dispose();
+    }
 
 
 
@@ -130,18 +132,18 @@ class _SlideWidgetState extends State<SlideWidget> with SingleTickerProviderStat
     );
   }
 
-  Widget _normal(){
+  Widget _normal() {
     return Container(
       height: 80.0,
-      width: dragging ? widgetWidth * (1.0 - slidePercent ) : 400,
+      width: dragging ? widgetWidth * (1.0 - slidePercent) : null,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(40.0),
-        color: widget.color
+        color: widget.color,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(width: 10,),
+        children: <Widget>[
+          SizedBox(width: 10),
           GestureDetector(
             onHorizontalDragStart: _dragStart,
             onHorizontalDragUpdate: _dragUpdate,
@@ -151,21 +153,26 @@ class _SlideWidgetState extends State<SlideWidget> with SingleTickerProviderStat
               height: 60.0,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30.0),
-                color: Colors.white
+                color: Colors.white,
               ),
-              child: Icon(
-                widget.icon,
-                size: 30.0,
-                color: widget.color
+              child: Icon(widget.icon,
+                size: 40.0,
+                color: widget.color,
               ),
             ),
           ),
           Container(
-            width: dragging ? (widgetWidth * (1.0 - slidePercent) -80) : null,
+            width: dragging
+                ? (widgetWidth * (1.0 - slidePercent) - 80)
+                : null,
             child: Padding(
-              padding: const EdgeInsets.only(left: 16.0, right: 36.0),
-              child: Text(widget.text, maxLines: 1, 
-              style: TextStyle(color: Colors.white, fontSize:20.0)),
+              padding: EdgeInsets.only(left: 16.0, right: 36.0),
+              child: Text(widget.text,
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20.0,
+                  )),
             ),
           )
         ],
@@ -173,13 +180,14 @@ class _SlideWidgetState extends State<SlideWidget> with SingleTickerProviderStat
     );
   }
 
-  Widget _loading(){
+  Widget _loading() {
     return Container(
       height: 80.0,
       width: 80.0,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(40.0),
-        color: widget.color
+        color: widget.color,
+
       ),
       child: AnimatedCrossFade(
         firstChild: Center(
@@ -191,9 +199,12 @@ class _SlideWidgetState extends State<SlideWidget> with SingleTickerProviderStat
           ),
         ),
         secondChild: Center(
-          child: Icon(Icons.check, size: 30.0, color: Colors.white),
+          child: Icon(Icons.check,
+            size: 30,
+            color: Colors.white,),
         ),
-        crossFadeState: success ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+        crossFadeState: success ? CrossFadeState.showSecond : CrossFadeState
+            .showFirst,
         duration: Duration(milliseconds: 750),
       ),
     );

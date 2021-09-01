@@ -9,11 +9,31 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Slide App',
-      home: SlideWidget(
-        color: Colors.blue,
-        text: 'slide',
-        icon: Icons.people,
-        onSubmit: (onFinish, onError)  => onFinish()
+      home: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SlideToSubmitWidget(
+                color: Colors.blueGrey,
+                text: 'Slide to Submit...',
+                icon: Icons.arrow_right_alt,
+                onSubmit: (onFinish, onError) async {
+                  onFinish();
+                }
+              ),
+              SizedBox(height: 15,),
+              SlideToSubmitWidget(
+                color: Colors.blue,
+                text: 'GO on',
+                icon: Icons.arrow_right_alt,
+                onSubmit: (onFinish, onError) async {
+                  onError();
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
